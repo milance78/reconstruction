@@ -1,0 +1,20 @@
+.simple-input {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  // justify-content: space-between;
+  .icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: #f0f0f0;
+    border-radius: 50%;
+    flex-shrink: 0;
+    .icon {
+      font-size: 30px;
+      color: #555555;
+    }
+  }
+}
