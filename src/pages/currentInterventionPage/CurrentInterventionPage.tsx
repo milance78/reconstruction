@@ -1,30 +1,121 @@
-import "./CurrentInterventionPage.scss";
+import * as React from "react";
 
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
+import CheckRounded from "@mui/icons-material/CheckRounded";
+import ContentCopyRounded from "@mui/icons-material/ContentCopyRounded";
 import Send from "@mui/icons-material/Send";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import TextField from "@mui/material/TextField";
+import Tooltip from "@mui/material/Tooltip";
 import { useNavigate } from "react-router-dom";
 
+import "./CurrentInterventionPage.scss";
+
 import BooleanInput from "../../components/currentIntervention/booleanInput/BooleanInput";
+import ClientsOnAddress from "../../components/currentIntervention/clientsOnAddress/ClientsOnAddress";
 import InfrastructureInput from "../../components/currentIntervention/infrastructureInput/InfrastructureInput";
+import InputsAll from "../../components/currentIntervention/inputsAll/InputsAll";
 import NetworkInput from "../../components/currentIntervention/networkInput/NetworkInput";
 import StatusInput from "../../components/currentIntervention/status/StatusInput";
-import InputsAll from "../../components/currentIntervention/inputsAll/InputsAll";
-import ClientsOnAddress from "../../components/currentIntervention/clientsOnAddress/ClientsOnAddress";
 
-import { useAppDispatch, useAppSelector } from "../../redux/store";
 import { updateField } from "../../redux/features/newInterventionSlice";
+import {
+  useAppDispatch,
+  useAppSelector,
+} from "../../redux/store";
 import { createInterventionThunk } from "../../redux/thunks/createInterventionThunk";
 import { updateInterventionThunk } from "../../redux/thunks/updateInterventionThunk";
 
-import { ReactComponent as LightBulbOnIcon } from "../../assets/svg/Light bulb on.svg.tsx";
-import { ReactComponent as LightBulbOffIcon } from "../../assets/svg/Light bulb off.svg.tsx";
-import { ReactComponent as SnowOnIcon } from "../../assets/svg/Snow on.svg.tsx";
-import { ReactComponent as SnowOffIcon } from "../../assets/svg/Snow off.svg.tsx";
-import { ReactComponent as QuestionMarkOnIcon } from "../../assets/svg/Question mark on.svg.tsx";
-import { ReactComponent as QuestionMarkOffIcon } from "../../assets/svg/Question mark off.svg.tsx";
 import { ReactComponent as AddressConfirmedIcon } from "../../assets/svg/Address confirmed.svg.tsx";
 import { ReactComponent as AddressNotConfirmedIcon } from "../../assets/svg/Address not confirmed.svg.tsx";
+import { ReactComponent as LightBulbOffIcon } from "../../assets/svg/Light bulb off.svg.tsx";
+import { ReactComponent as LightBulbOnIcon } from "../../assets/svg/Light bulb on.svg.tsx";
+import { ReactComponent as QuestionMarkOffIcon } from "../../assets/svg/Question mark off.svg.tsx";
+import { ReactComponent as QuestionMarkOnIcon } from "../../assets/svg/Question mark on.svg.tsx";
+import { ReactComponent as SnowOffIcon } from "../../assets/svg/Snow off.svg.tsx";
+import { ReactComponent as SnowOnIcon } from "../../assets/svg/Snow on.svg.tsx";
+
+type CopyButtonProps = {
+  value: string;
+  label: string;
+};
+
+const CopyButton = ({
+  value,
+  label,
+}: CopyButtonProps) => {
+  const [copied, setCopied] = React.useState(false);
+
+  const copyValue = async () => {
+    if (!value.trim()) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      const temporaryTextArea =
+        document.createElement("textarea");
+
+      temporaryTextArea.value = value;
+      temporaryTextArea.style.position = "fixed";
+      temporaryTextArea.style.opacity = "0";
+
+      document.body.appendChild(
+        temporaryTextArea,
+      );
+
+      temporaryTextArea.focus();
+      temporaryTextArea.select();
+      document.execCommand("copy");
+
+      document.body.removeChild(
+        temporaryTextArea,
+      );
+    }
+
+    setCopied(true);
+
+    window.setTimeout(() => {
+      setCopied(false);
+    }, 1200);
+  };
+
+  return (
+    <Tooltip
+      title={
+        copied
+          ? "Copié"
+          : value.trim()
+            ? "Copier"
+            : "Champ vide"
+      }
+      placement="top"
+      arrow
+    >
+      <span className="copy-field-button-wrapper">
+        <IconButton
+          type="button"
+          size="small"
+          aria-label={`Copier ${label}`}
+          className={`copy-field-button ${
+            copied
+              ? "copy-field-button--copied"
+              : ""
+          }`}
+          disabled={!value.trim()}
+          onClick={copyValue}
+        >
+          {copied ? (
+            <CheckRounded fontSize="small" />
+          ) : (
+            <ContentCopyRounded fontSize="small" />
+          )}
+        </IconButton>
+      </span>
+    </Tooltip>
+  );
+};
 
 const CurrentInterventionPage = () => {
   const dispatch = useAppDispatch();
@@ -34,20 +125,32 @@ const CurrentInterventionPage = () => {
     (state) => state.newIntervention,
   );
 
-  const { clientName, comment, isEditing } = newIntervention;
+  const {
+    clientName,
+    comment,
+    isEditing,
+  } = newIntervention;
 
   const submitActions = async () => {
     const result = isEditing
       ? await dispatch(
-          updateInterventionThunk(newIntervention),
+          updateInterventionThunk(
+            newIntervention,
+          ),
         )
       : await dispatch(
-          createInterventionThunk(newIntervention),
+          createInterventionThunk(
+            newIntervention,
+          ),
         );
 
     const requestFailed =
-      createInterventionThunk.rejected.match(result) ||
-      updateInterventionThunk.rejected.match(result);
+      createInterventionThunk.rejected.match(
+        result,
+      ) ||
+      updateInterventionThunk.rejected.match(
+        result,
+      );
 
     if (requestFailed) {
       const message =
@@ -75,7 +178,9 @@ const CurrentInterventionPage = () => {
             </h1>
 
             <span className="editing-badge">
-              {isEditing ? "Modification" : "Création"}
+              {isEditing
+                ? "Modification"
+                : "Création"}
             </span>
           </header>
 
@@ -107,8 +212,12 @@ const CurrentInterventionPage = () => {
                 <BooleanInput
                   field="isUnclear"
                   label="Question à poser à l'M&P ?"
-                  trueIcon={<QuestionMarkOnIcon />}
-                  falseIcon={<QuestionMarkOffIcon />}
+                  trueIcon={
+                    <QuestionMarkOnIcon />
+                  }
+                  falseIcon={
+                    <QuestionMarkOffIcon />
+                  }
                 />
               </div>
 
@@ -116,8 +225,12 @@ const CurrentInterventionPage = () => {
                 <BooleanInput
                   field="isGoodExample"
                   label="Bon exemple à retenir ?"
-                  trueIcon={<LightBulbOnIcon />}
-                  falseIcon={<LightBulbOffIcon />}
+                  trueIcon={
+                    <LightBulbOnIcon />
+                  }
+                  falseIcon={
+                    <LightBulbOffIcon />
+                  }
                 />
               </div>
 
@@ -125,8 +238,12 @@ const CurrentInterventionPage = () => {
                 <BooleanInput
                   field="isAddressConfirmed"
                   label="Adresse confirmée ?"
-                  trueIcon={<AddressConfirmedIcon />}
-                  falseIcon={<AddressNotConfirmedIcon />}
+                  trueIcon={
+                    <AddressConfirmedIcon />
+                  }
+                  falseIcon={
+                    <AddressNotConfirmedIcon />
+                  }
                 />
               </div>
             </div>
@@ -134,7 +251,7 @@ const CurrentInterventionPage = () => {
         </section>
 
         <section className="intervention-card right-card">
-          <div className="client-name-field">
+          <div className="client-name-field copy-field">
             <TextField
               label="Nom du client"
               value={clientName}
@@ -142,11 +259,23 @@ const CurrentInterventionPage = () => {
                 dispatch(
                   updateField({
                     field: "clientName",
-                    value: event.target.value,
+                    value:
+                      event.target.value,
                   }),
                 )
               }
               fullWidth
+              sx={{
+                "& .MuiOutlinedInput-input":
+                  {
+                    paddingRight: "48px",
+                  },
+              }}
+            />
+
+            <CopyButton
+              value={clientName}
+              label="Nom du client"
             />
           </div>
 
@@ -154,7 +283,7 @@ const CurrentInterventionPage = () => {
             <ClientsOnAddress />
           </div>
 
-          <div className="comment-field">
+          <div className="comment-field copy-field">
             <TextField
               label="Commentaire"
               value={comment}
@@ -162,13 +291,25 @@ const CurrentInterventionPage = () => {
                 dispatch(
                   updateField({
                     field: "comment",
-                    value: event.target.value,
+                    value:
+                      event.target.value,
                   }),
                 )
               }
               multiline
               rows={7}
               fullWidth
+              sx={{
+                "& textarea": {
+                  paddingRight: "48px",
+                  boxSizing: "border-box",
+                },
+              }}
+            />
+
+            <CopyButton
+              value={comment}
+              label="Commentaire"
             />
           </div>
 
@@ -184,7 +325,9 @@ const CurrentInterventionPage = () => {
               startIcon={<Send />}
               className="submit-intervention-button"
             >
-              {isEditing ? "Enregistrer" : "Envoyer"}
+              {isEditing
+                ? "Enregistrer"
+                : "Envoyer"}
             </Button>
           </footer>
         </section>
