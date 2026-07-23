@@ -52,6 +52,8 @@ interface UpdateFieldPayload {
   value: InterventionData[InterventionField];
 }
 
+type ImportedDataPayload = Partial<InterventionData>;
+
 export const emptyInterventionData: InterventionData = {
   documentId: "",
   interventionId: "",
@@ -197,6 +199,31 @@ const NewInterventionSlice = createSlice({
       }
     },
 
+    applyImportedData: (state, action: PayloadAction<ImportedDataPayload>) => {
+      if (state.mode === "VIEW_HISTORY") return;
+
+      for (const [key, value] of Object.entries(action.payload)) {
+        if (value === undefined || value === null) continue;
+        const field = key as InterventionField;
+        (state as unknown as Record<string, unknown>)[field] = value;
+      }
+
+      if (state.mode === "NEW" || state.mode === "DRAFT") {
+        const draft = extractData(state);
+        state.hasDraft = hasMeaningfulDraft(draft);
+        state.mode = state.hasDraft ? "DRAFT" : "NEW";
+        state.draftSnapshot = state.hasDraft
+          ? {
+              ...draft,
+              documentId: "",
+              createdAt: null,
+              updatedAt: null,
+              dateKey: undefined,
+            }
+          : null;
+      }
+    },
+
     loadInterventionForEdit: (
       state,
       action: PayloadAction<Intervention>,
@@ -299,6 +326,7 @@ const NewInterventionSlice = createSlice({
 });
 
 export const {
+  applyImportedData,
   clearTask,
   loadDraft,
   loadInterventionForEdit,

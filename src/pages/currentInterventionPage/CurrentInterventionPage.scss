@@ -110,6 +110,14 @@
     }
   }
 
+  .card-header__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    min-width: 0;
+  }
+
   .editing-badge {
     flex-shrink: 0;
     padding: 8px 15px;
@@ -604,7 +612,15 @@
       background: #f8fafc;
     }
 
-    .editing-badge {
+    .card-header__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .editing-badge {
       color: #475569;
       background: #f1f5f9;
       border-color: #cbd5e1;

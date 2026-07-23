@@ -16,6 +16,8 @@ import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
 import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 import { useNavigate } from "react-router-dom";
 
 import "./CurrentInterventionPage.scss";
@@ -27,6 +29,7 @@ import InfrastructureInput from "../../components/currentIntervention/infrastruc
 import InputsAll from "../../components/currentIntervention/inputsAll/InputsAll";
 import NetworkInput from "../../components/currentIntervention/networkInput/NetworkInput";
 import StatusInput from "../../components/currentIntervention/status/StatusInput";
+import SmartImportDialog from "../../components/smartImportDialog/SmartImportDialog";
 
 import {
   clearTask,
@@ -163,6 +166,7 @@ const CurrentInterventionPage = () => {
   const [revisionsLoading, setRevisionsLoading] = React.useState(false);
   const [revisions, setRevisions] = React.useState<InterventionRevision[]>([]);
   const [revisionsError, setRevisionsError] = React.useState("");
+  const [importMessage, setImportMessage] = React.useState("");
 
   const submitActions = async () => {
     const result = isEditing
@@ -290,15 +294,21 @@ const CurrentInterventionPage = () => {
                     : "Nouvelle intervention"}
             </h1>
 
-            <span className="editing-badge">
-              {isSearchEdit
-                ? "Modification recherchée"
-                : isHistoryView
-                  ? "Historique"
-                  : isEditing
-                    ? "Modification"
-                    : "Création"}
-            </span>
+            <div className="card-header__actions">
+              {!isHistoryView && (
+                <SmartImportDialog onImported={setImportMessage} />
+              )}
+
+              <span className="editing-badge">
+                {isSearchEdit
+                  ? "Modification recherchée"
+                  : isHistoryView
+                    ? "Historique"
+                    : isEditing
+                      ? "Modification"
+                      : "Création"}
+              </span>
+            </div>
           </header>
 
           <div className="basic-info">
@@ -590,7 +600,22 @@ const CurrentInterventionPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </main>
+    
+      <Snackbar
+        open={Boolean(importMessage)}
+        autoHideDuration={4200}
+        onClose={() => setImportMessage("")}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          severity={importMessage.startsWith("Aucune") ? "warning" : "success"}
+          variant="filled"
+          onClose={() => setImportMessage("")}
+        >
+          {importMessage}
+        </Alert>
+      </Snackbar>
+</main>
   );
 };
 
